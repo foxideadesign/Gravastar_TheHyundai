@@ -4,6 +4,18 @@ document.addEventListener("DOMContentLoaded", () => {
   ========================= */
   const blocks = document.querySelectorAll(".menu-block");
 
+  function syncOpenAccordionHeight() {
+    const openBlock = document.querySelector(".menu-block.is-open");
+    if (!openBlock) return;
+
+    const openBody = openBlock.querySelector(".menu-body");
+    if (!openBody) return;
+
+    requestAnimationFrame(() => {
+      openBody.style.maxHeight = `${openBody.scrollHeight}px`;
+    });
+  }
+
   blocks.forEach((block) => {
     const trigger = block.querySelector(".menu-head");
     const body = block.querySelector(".menu-body");
@@ -11,15 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!trigger || !body) return;
 
     trigger.addEventListener("click", (e) => {
-      if (block.classList.contains("menu-block--link")) return;
-
       e.preventDefault();
 
       const isOpen = block.classList.contains("is-open");
 
       blocks.forEach((item) => {
-        if (item.classList.contains("menu-block--link")) return;
-
         const itemTrigger = item.querySelector(".menu-head");
         const itemBody = item.querySelector(".menu-body");
 
@@ -43,80 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* =========================
-     1차 탭 (카테고리)
-  ========================= */
-  const categoryTabs = document.querySelectorAll(".category-tab");
-  const categoryPanels = document.querySelectorAll(".category-panel");
-
-  categoryTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.category;
-
-      categoryTabs.forEach((btn) => {
-        btn.classList.remove("is-active");
-        btn.setAttribute("aria-selected", "false");
-      });
-
-      categoryPanels.forEach((panel) => {
-        panel.classList.remove("is-active");
-      });
-
-      tab.classList.add("is-active");
-      tab.setAttribute("aria-selected", "true");
-
-      const panel = document.querySelector(`[data-category-panel="${target}"]`);
-      if (panel) panel.classList.add("is-active");
-
-      const openBody = document.querySelector(".menu-block.is-open .menu-body");
-      if (openBody) {
-        requestAnimationFrame(() => {
-          openBody.style.maxHeight = `${openBody.scrollHeight}px`;
-        });
-      }
-    });
-  });
-
-  /* =========================
-     2차 탭 (제품 라인업)
-  ========================= */
-  const subTabs = document.querySelectorAll(".sub-tab");
-
-  subTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const parentPanel = tab.closest(".category-panel");
-      if (!parentPanel) return;
-
-      const target = tab.dataset.target;
-
-      const tabs = parentPanel.querySelectorAll(".sub-tab");
-      const panels = parentPanel.querySelectorAll(".sub-panel");
-
-      tabs.forEach((t) => {
-        t.classList.remove("is-active");
-        t.setAttribute("aria-selected", "false");
-      });
-
-      panels.forEach((p) => {
-        p.classList.remove("is-active");
-      });
-
-      tab.classList.add("is-active");
-      tab.setAttribute("aria-selected", "true");
-
-      const panel = parentPanel.querySelector(`[data-sub-panel="${target}"]`);
-      if (panel) panel.classList.add("is-active");
-
-      const openBody = document.querySelector(".menu-block.is-open .menu-body");
-      if (openBody) {
-        requestAnimationFrame(() => {
-          openBody.style.maxHeight = `${openBody.scrollHeight}px`;
-        });
-      }
-    });
-  });
-
-  /* =========================
-     제품 팝업 슬라이더 + 썸네일
+     제품 팝업
   ========================= */
   const modal = document.getElementById("productModal");
   const modalTitle = document.getElementById("productModalTitle");
@@ -126,15 +61,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalPrevBtn = document.getElementById("modalPrevBtn");
   const modalNextBtn = document.getElementById("modalNextBtn");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
+  const modalDetailSection = document.getElementById("modalDetailSection");
+  const modalDetailImages = document.getElementById("modalDetailImages");
+  const modalSpecSection = document.getElementById("modalSpecSection");
+  const modalSpecContent = document.getElementById("modalSpecContent");
+  const modalScroll = modal
+    ? modal.querySelector(".product-modal__scroll")
+    : null;
   const productCards = document.querySelectorAll(".product-card");
 
   let currentImages = [];
   let currentIndex = 0;
   let currentTitle = "";
 
+  function parseImageList(value) {
+    return (value || "")
+      .split("|")
+      .map((src) => src.trim())
+      .filter(Boolean);
+  }
+
   function renderModalImage() {
-    if (!modalMainImage || !modalCount || !modalThumbs || !currentImages.length)
+    if (
+      !modalMainImage ||
+      !modalCount ||
+      !modalThumbs ||
+      !currentImages.length
+    ) {
       return;
+    }
 
     modalMainImage.src = currentImages[currentIndex];
     modalMainImage.alt = `${currentTitle} 이미지 ${currentIndex + 1}`;
@@ -172,8 +127,66 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function openModal(title, images) {
-    if (!modal || !modalTitle || !images.length) return;
+  function renderDetailImages(detailImages) {
+    if (!modalDetailSection || !modalDetailImages) return;
+
+    modalDetailImages.innerHTML = "";
+
+    if (!detailImages.length) {
+      modalDetailSection.hidden = true;
+      return;
+    }
+
+    detailImages.forEach((src, idx) => {
+      const figure = document.createElement("figure");
+      figure.className = "product-modal__detail-image";
+
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = `${currentTitle} 상세 이미지 ${idx + 1}`;
+      img.loading = "lazy";
+
+      figure.appendChild(img);
+      modalDetailImages.appendChild(figure);
+    });
+
+    modalDetailSection.hidden = false;
+  }
+
+  function renderSpecTemplate(card) {
+    if (!modalSpecSection || !modalSpecContent) return;
+
+    modalSpecContent.innerHTML = "";
+
+    const selector = card.dataset.specTemplate;
+    if (!selector) {
+      modalSpecSection.hidden = true;
+      return;
+    }
+
+    const template = document.querySelector(selector);
+    if (!template) {
+      modalSpecSection.hidden = true;
+      return;
+    }
+
+    const fragment = template.content.cloneNode(true);
+    modalSpecContent.appendChild(fragment);
+    modalSpecSection.hidden = false;
+  }
+
+  function openModal(card) {
+    if (!modal || !modalTitle) return;
+
+    const title =
+      card.dataset.title ||
+      card.querySelector(".product-card__name")?.textContent?.trim() ||
+      "제품 상세";
+
+    const images = parseImageList(card.dataset.images);
+    const detailImages = parseImageList(card.dataset.detailImages);
+
+    if (!images.length) return;
 
     currentTitle = title;
     currentImages = images;
@@ -182,22 +195,39 @@ document.addEventListener("DOMContentLoaded", () => {
     modalTitle.textContent = currentTitle;
     createThumbs();
     renderModalImage();
+    renderDetailImages(detailImages.length ? detailImages : images);
+    renderSpecTemplate(card);
 
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
+
+    if (modalScroll) {
+      modalScroll.scrollTop = 0;
+    }
   }
 
   function closeModal() {
-    if (!modal || !modalMainImage || !modalThumbs) return;
+    if (!modal) return;
 
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
 
-    modalMainImage.src = "";
-    modalMainImage.alt = "";
-    modalThumbs.innerHTML = "";
+    if (modalMainImage) {
+      modalMainImage.src = "";
+      modalMainImage.alt = "";
+    }
+
+    if (modalThumbs) modalThumbs.innerHTML = "";
+    if (modalDetailImages) modalDetailImages.innerHTML = "";
+    if (modalSpecContent) modalSpecContent.innerHTML = "";
+    if (modalDetailSection) modalDetailSection.hidden = true;
+    if (modalSpecSection) modalSpecSection.hidden = true;
+
+    if (modalScroll) {
+      modalScroll.scrollTop = 0;
+    }
 
     currentImages = [];
     currentIndex = 0;
@@ -220,20 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
   productCards.forEach((card) => {
     card.addEventListener("click", (e) => {
       e.preventDefault();
-
-      const title =
-        card.dataset.title ||
-        card.querySelector(".product-card__name")?.textContent?.trim() ||
-        "제품 상세";
-
-      const images = (card.dataset.images || "")
-        .split("|")
-        .map((src) => src.trim())
-        .filter(Boolean);
-
-      if (!images.length) return;
-
-      openModal(title, images);
+      openModal(card);
     });
   });
 
@@ -268,9 +285,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "ArrowRight") showNextImage();
   });
 
-  /* =========================
-     터치 스와이프
-  ========================= */
   let touchStartX = 0;
   let touchEndX = 0;
 
@@ -293,16 +307,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-     열려 있는 아코디언 높이 재계산
-  ========================= */
-  window.addEventListener("resize", () => {
-    const openBlock = document.querySelector(".menu-block.is-open");
-    if (!openBlock) return;
-
-    const openBody = openBlock.querySelector(".menu-body");
-    if (!openBody) return;
-
-    openBody.style.maxHeight = `${openBody.scrollHeight}px`;
-  });
+  window.addEventListener("resize", syncOpenAccordionHeight);
 });
