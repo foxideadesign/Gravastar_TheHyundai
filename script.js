@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderDetailImages(detailImages) {
+  function renderDetailImages(card, detailImages) {
     if (!modalDetailSection || !modalDetailImages) return;
 
     modalDetailImages.innerHTML = "";
@@ -137,9 +137,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const detailMaxWidth = card.dataset.detailMaxWidth;
+
     detailImages.forEach((src, idx) => {
       const figure = document.createElement("figure");
       figure.className = "product-modal__detail-image";
+
+      if (detailMaxWidth) {
+        figure.style.maxWidth = `${detailMaxWidth}px`;
+        figure.style.width = "100%";
+        figure.style.margin = "0 auto";
+      }
 
       const img = document.createElement("img");
       img.src = src;
@@ -195,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modalTitle.textContent = currentTitle;
     createThumbs();
     renderModalImage();
-    renderDetailImages(detailImages.length ? detailImages : images);
+    renderDetailImages(card, detailImages.length ? detailImages : images);
     renderSpecTemplate(card);
 
     modal.classList.add("is-open");
