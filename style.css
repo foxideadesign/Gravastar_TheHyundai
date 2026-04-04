@@ -51,6 +51,11 @@ img {
   width: 100%;
 }
 
+.maintitle {color: #fff; font-size: 3rem;}
+
+.maintitle > img {max-width: 200px; height: auto; margin: 30px auto;}
+
+
 .menu-wrap {
   width: 100%;
   padding: 0 40px;
@@ -601,8 +606,10 @@ img {
 @media (max-width: 768px) {
   body > h1 {
     margin: 50px auto;
-    max-width: 350px;
   }
+
+  .maintitle {color: #fff; font-size: 2.7rem;}
+
 
   .menu-wrap {
     padding: 12px 12px 24px;
