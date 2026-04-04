@@ -255,16 +255,6 @@ img {
   margin-bottom: 22px;
 }
 
-.sub-tabs-wrap::before {
-  content: "";
-  display: block;
-  width: 100%;
-  max-width: 260px;
-  height: 1px;
-  background: #d7d7d7;
-  margin: 0 auto 20px;
-}
-
 .sub-tabs-title {
   margin-bottom: 16px;
   font-size: 22px;
