@@ -51,10 +51,16 @@ img {
   width: 100%;
 }
 
-.maintitle {color: #fff; font-size: 3rem;}
+.maintitle {
+  color: #fff;
+  font-size: 3rem;
+}
 
-.maintitle > img {max-width: 200px; height: auto; margin: 30px auto;}
-
+.maintitle > img {
+  max-width: 200px;
+  height: auto;
+  margin: 30px auto;
+}
 
 .menu-wrap {
   width: 100%;
@@ -161,6 +167,13 @@ img {
   margin-bottom: 12px;
   border-radius: 4px;
   overflow: hidden;
+}
+
+.intro-desc {
+  margin: 0;
+  font-size: 2.1rem;
+  line-height: 1.6;
+  word-break: keep-all;
 }
 
 .video-box {
@@ -569,6 +582,9 @@ img {
     height: 48px;
     flex-basis: 48px;
   }
+  .intro-desc {
+    font-size: 1.6rem;
+  }
 
   .menu-head__icon-svg {
     width: 42px;
@@ -598,8 +614,10 @@ img {
     margin: 50px auto;
   }
 
-  .maintitle {color: #fff; font-size: 2.7rem;}
-
+  .maintitle {
+    color: #fff;
+    font-size: 2.7rem;
+  }
 
   .menu-wrap {
     padding: 12px 12px 24px;
